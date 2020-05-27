@@ -16,18 +16,14 @@
 package com.cn.mybatis.executor.statement;
 
 import com.cn.mybatis.executor.Executor;
+import com.cn.mybatis.executor.ResultHandler;
 import com.cn.mybatis.mapping.BoundSql;
 import com.cn.mybatis.mapping.MappedStatement;
-import com.cn.mybatis.mapping.ResultSetType;
-import com.cn.mybatis.session.ResultHandler;
 import com.cn.mybatis.session.RowBounds;
 
 import java.sql.*;
 import java.util.List;
 
-/**
- * @author Clinton Begin
- */
 public class PreparedStatementHandler extends BaseStatementHandler {
 
   public PreparedStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameter, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
@@ -44,18 +40,7 @@ public class PreparedStatementHandler extends BaseStatementHandler {
   @Override
   protected Statement instantiateStatement(Connection connection) throws SQLException {
     String sql = boundSql.getSql();
-    if (mappedStatement.getKeyGenerator() instanceof Jdbc3KeyGenerator) {
-      String[] keyColumnNames = mappedStatement.getKeyColumns();
-      if (keyColumnNames == null) {
-        return connection.prepareStatement(sql, PreparedStatement.RETURN_GENERATED_KEYS);
-      } else {
-        return connection.prepareStatement(sql, keyColumnNames);
-      }
-    } else if (mappedStatement.getResultSetType() == ResultSetType.DEFAULT) {
-      return connection.prepareStatement(sql);
-    } else {
-      return connection.prepareStatement(sql, mappedStatement.getResultSetType().getValue(), ResultSet.CONCUR_READ_ONLY);
-    }
+    return connection.prepareStatement(sql);
   }
 
   @Override

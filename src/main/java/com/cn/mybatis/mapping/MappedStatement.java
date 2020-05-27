@@ -37,6 +37,15 @@ public class MappedStatement {
 
     }
 
+    public MappedStatement(Configuration configuration, String id, StatementType statementType, SqlSource sqlSource, Class<?> parameterTypeClass, Class<?> resultTypeClass) {
+        this.configuration=configuration;
+        this.id=id;
+        this.statementType=statementType;
+        this.sqlSource=sqlSource;
+        this.parameterTypeClass=parameterTypeClass;
+        this.resultTypeClass=resultTypeClass;
+    }
+
     public BoundSql getBoundSql(Object parameterObject) {
         BoundSql boundSql = sqlSource.getBoundSql(parameterObject);
         List<ParameterMapping> parameterMappings = boundSql.getParameterMappings();
