@@ -1,0 +1,5 @@
+<mapper namespace="test">
+    <select id="selectById" parameterType="java.lang.Integer" resultType="com.cn.mybatis.entity.User">
+        SELECT * FROM user WHERE id = #{id}
+    </select>
+</mapper>
