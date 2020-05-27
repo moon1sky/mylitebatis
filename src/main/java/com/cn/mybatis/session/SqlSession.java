@@ -1,24 +1,24 @@
-package com.cn.mybatis.session;
+package com.mybatis.v1;
+
+public class SqlSession {
+
+    private Configure configure;
+
+    private Excutor excutor;
+
+    public SqlSession(Configure configure, Excutor excutor) {
+        this.configure = configure;
+        this.excutor = excutor;
+    }
 
 
-import com.cn.mybatis.configuration.Configuration;
+    public <T> T getMapper(Class<T> classZZ) {
+        return configure.getMapper(classZZ,this);
+    }
 
-import java.sql.Connection;
-import java.util.List;
+    public <T> T selectOne(String statement, String params) {
+        return excutor.selectOne(statement,params);
 
-public interface SqlSession {
+    }
 
-  <T> T selectOne(String statement);
-
-  <T> T selectOne(String statement, Object parameter);
-
-  <E> List<E> selectList(String statement);
-
-  <E> List<E> selectList(String statement, Object parameter);
-
-  Configuration getConfiguration();
-
-  <T> T getMapper(Class<T> type);
-
-  Connection getConnection();
 }
