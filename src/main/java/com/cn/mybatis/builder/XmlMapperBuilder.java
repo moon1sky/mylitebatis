@@ -11,23 +11,31 @@ import lombok.Data;
 import org.dom4j.Document;
 import org.dom4j.Element;
 
-import java.io.InputStream;
 import java.io.Reader;
 import java.util.List;
 
 
 @Data
-@AllArgsConstructor
 public class XmlMapperBuilder {
 
     private Reader reader;
     private Configuration configuration;
 
+    XmlMapperBuilder(){
+
+    }
+
+    XmlMapperBuilder(Reader reader,Configuration configuration){
+        this.reader = reader;
+        this.configuration = configuration;
+    }
+
+
     public void parse() {
         Document document = DocumentReader.createDocument(reader);
         parseMapperElement(document.getRootElement());
     }
-    @SuppressWarnings("unchecked")
+
     private void parseMapperElement(Element rootElement) {
         String namespace = rootElement.attributeValue("namespace");
         try {
@@ -61,13 +69,13 @@ public class XmlMapperBuilder {
         StatementType statementType = "prepared".equals(statementTypeString) ? StatementType.PREPARED : StatementType.STATEMENT;
 
         SqlSource sqlSource = createSqlSource(element);
-        MappedStatement mappedStatement = new MappedStatement(configuration, id, statementType, sqlSource);
+        MappedStatement mappedStatement = new MappedStatement(configuration, id, statementType, sqlSource,parameterTypeClass,resultTypeClass);
         configuration.addMapStatement(mappedStatement);
     }
 
     private SqlSource createSqlSource(Element element) {
         String text = element.getTextTrim();
-        return new DefaultSqlSource(text);
+        return new DefaultSqlSource(text,configuration);
     }
 
     private Class<?> resolveClass(String parameterType) {

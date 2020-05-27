@@ -1,27 +1,13 @@
-/**
- *    Copyright 2009-2016 the original author or authors.
- *
- *    Licensed under the Apache License, Version 2.0 (the "License");
- *    you may not use this file except in compliance with the License.
- *    You may obtain a copy of the License at
- *
- *       http://www.apache.org/licenses/LICENSE-2.0
- *
- *    Unless required by applicable law or agreed to in writing, software
- *    distributed under the License is distributed on an "AS IS" BASIS,
- *    WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- *    See the License for the specific language governing permissions and
- *    limitations under the License.
- */
 package com.cn.mybatis.executor.statement;
 
 import com.cn.mybatis.executor.ErrorContext;
 import com.cn.mybatis.executor.Executor;
+import com.cn.mybatis.executor.ResultHandler;
 import com.cn.mybatis.executor.parameter.ParameterHandler;
+import com.cn.mybatis.executor.resultset.ResultSetHandler;
 import com.cn.mybatis.mapping.BoundSql;
 import com.cn.mybatis.mapping.MappedStatement;
 import com.cn.mybatis.session.Configuration;
-import com.cn.mybatis.session.ResultHandler;
 import com.cn.mybatis.session.RowBounds;
 
 import java.sql.Connection;
@@ -34,8 +20,6 @@ import java.sql.Statement;
 public abstract class BaseStatementHandler implements StatementHandler {
 
   protected final Configuration configuration;
-  protected final ObjectFactory objectFactory;
-  protected final TypeHandlerRegistry typeHandlerRegistry;
   protected final ResultSetHandler resultSetHandler;
   protected final ParameterHandler parameterHandler;
 
@@ -45,17 +29,15 @@ public abstract class BaseStatementHandler implements StatementHandler {
 
   protected BoundSql boundSql;
 
-  protected BaseStatementHandler(Executor executor, MappedStatement mappedStatement, Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
+  protected BaseStatementHandler(Executor executor, MappedStatement mappedStatement,
+                                 Object parameterObject, RowBounds rowBounds, ResultHandler resultHandler, BoundSql boundSql) {
     this.configuration = mappedStatement.getConfiguration();
     this.executor = executor;
     this.mappedStatement = mappedStatement;
     this.rowBounds = rowBounds;
 
-    this.typeHandlerRegistry = configuration.getTypeHandlerRegistry();
-    this.objectFactory = configuration.getObjectFactory();
 
     if (boundSql == null) { // issue #435, get the key before calculating the statement
-      generateKeys(parameterObject);
       boundSql = mappedStatement.getBoundSql(parameterObject);
     }
 
@@ -70,10 +52,6 @@ public abstract class BaseStatementHandler implements StatementHandler {
     return boundSql;
   }
 
-  @Override
-  public ParameterHandler getParameterHandler() {
-    return parameterHandler;
-  }
 
   @Override
   public Statement prepare(Connection connection, Integer transactionTimeout) throws SQLException {

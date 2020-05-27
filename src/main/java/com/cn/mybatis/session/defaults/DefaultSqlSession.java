@@ -15,11 +15,18 @@ import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 
-@AllArgsConstructor
 public class DefaultSqlSession implements SqlSession {
 
     private final Configuration configuration;
     private final Executor executor;
+    private final boolean autoCommit;
+
+    public DefaultSqlSession(Configuration configuration, Executor executor, boolean autoCommit) {
+        this.configuration = configuration;
+        this.executor = executor;
+        this.autoCommit = autoCommit;
+
+    }
 
     @Override
     public <T> T selectOne(String statement) {
@@ -52,7 +59,7 @@ public class DefaultSqlSession implements SqlSession {
     public <E> List<E> selectList(String statement, Object parameter, RowBounds rowBounds) {
         try {
             MappedStatement ms = configuration.getMappedStatement(statement);
-            return executor.query(ms, wrapCollection(parameter), rowBounds,Executor.NO_RESULT_HANDLER);
+            return executor.query(ms, wrapCollection(parameter), rowBounds, Executor.NO_RESULT_HANDLER);
         } catch (Exception e) {
             throw new RuntimeException("Error querying database.  Cause: " + e, e);
         } finally {

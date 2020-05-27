@@ -13,7 +13,7 @@ import java.util.List;
 
 public class SimpleExcutor extends BaseExecutor {
 
-    protected SimpleExcutor(Configuration configuration) {
+    public SimpleExcutor(Configuration configuration) {
         super(configuration);
     }
 
