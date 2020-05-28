@@ -12,6 +12,8 @@ import com.cn.mybatis.executor.statement.RoutingStatementHandler;
 import com.cn.mybatis.executor.statement.StatementHandler;
 import com.cn.mybatis.mapping.BoundSql;
 import com.cn.mybatis.mapping.MappedStatement;
+import com.cn.mybatis.plugin.Interceptor;
+import com.cn.mybatis.plugin.InterceptorChains;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
@@ -21,6 +23,7 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.util.Collection;
 import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 public class Configuration {
@@ -32,9 +35,12 @@ public class Configuration {
 
     protected final Map<String, MappedStatement> mappedStatements = new HashMap<>();
 
-    public Configuration(){
+    protected final InterceptorChains interceptorChains = new InterceptorChains();
+
+    public Configuration() {
 
     }
+
 
     public ExecutorType getDefaultExecutorType() {
         return defaultExecutorType;
@@ -64,8 +70,63 @@ public class Configuration {
         return statementHandler;
     }
 
+    public void addMapStatement(MappedStatement mappedStatement) {
+        this.mappedStatements.put(mappedStatement.getId(), mappedStatement);
+    }
+
+    public Executor newExecutor(ExecutorType executorType) {
+        executorType = executorType == null ? defaultExecutorType : executorType;
+        //这句再做一下保护,囧,防止粗心大意的人将defaultExecutorType设成null?
+        executorType = executorType == null ? ExecutorType.SIMPLE : executorType;
+        Executor executor=null;
+        //然后就是简单的3个分支，产生3种执行器BatchExecutor/ReuseExecutor/SimpleExecutor
+        if (ExecutorType.BATCH == executorType) {
+//            executor = new BatchExecutor();
+        } else if (ExecutorType.REUSE == executorType) {
+//            executor = new ReuseExecutor();
+        } else {
+            executor = new SimpleExcutor(this);
+        }
+        if(executor==null){
+            executor = new SimpleExcutor(this);
+        }
+        return (Executor) interceptorChains.pluginAll(executor);
+    }
+
+    public Integer getDefaultFetchSize() {
+        return 1000000;
+    }
+
+    public Integer getDefaultStatementTimeout() {
+        return 1000000;
+    }
+
+    public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
+        this.mappedStatements.put(mappedStatement.getId(), mappedStatement);
+//        this.parameterObject = parameterObject;
+        return new DefaultParameterHandler(mappedStatement, parameterObject, boundSql);
+    }
+
+    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement
+            mappedStatement, RowBounds rowBounds, ParameterHandler parameterHandler, ResultHandler resultHandler, BoundSql boundSql) {
+        return new DefaultResultSetHandler(executor, this, mappedStatement, rowBounds, parameterHandler, resultHandler, boundSql);
+    }
+
+    public void allPlugins(Interceptor interceptor) {
+        interceptorChains.add(interceptor);
+    }
+
+    public List<Interceptor> getAllPlugins() {
+        return interceptorChains.getAllPlugins();
+    }
+
+    public void setDataSource(DruidDataSource datasource) {
+        this.dataSource = datasource;
+    }
+
+
     public Connection getConnection() throws SQLException {
-        if(connection==null){
+        if (connection == null) {
             openConnection();
         }
         return connection;
@@ -80,37 +141,5 @@ public class Configuration {
 //            connection.setTransactionIsolation(level.getLevel());
 //        }
 //        setDesiredAutoCommit(autoCommit);
-    }
-
-    public void addMapStatement(MappedStatement mappedStatement) {
-        this.mappedStatements.put(mappedStatement.getId(), mappedStatement);
-    }
-
-    public Executor newExecutor(ExecutorType execType) {
-        return new SimpleExcutor(this);
-    }
-
-    public Integer getDefaultFetchSize() {
-        return 1000000;
-    }
-
-    public Integer getDefaultStatementTimeout() {
-        return 1000000;
-    }
-
-    public ParameterHandler newParameterHandler(MappedStatement mappedStatement, Object parameterObject, BoundSql boundSql) {
-        this.mappedStatements.put(mappedStatement.getId(),mappedStatement);
-//        this.parameterObject = parameterObject;
-        return new DefaultParameterHandler(mappedStatement,parameterObject,boundSql);
-    }
-
-    public ResultSetHandler newResultSetHandler(Executor executor, MappedStatement
-            mappedStatement, RowBounds rowBounds, ParameterHandler parameterHandler, ResultHandler resultHandler, BoundSql boundSql) {
-        return new DefaultResultSetHandler(executor,this,mappedStatement,rowBounds,parameterHandler,resultHandler,boundSql);
-    }
-
-
-    public void setDataSource(DruidDataSource datasource) {
-        this.dataSource = datasource;
     }
 }

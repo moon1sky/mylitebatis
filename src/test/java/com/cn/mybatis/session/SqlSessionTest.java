@@ -25,8 +25,7 @@ public class SqlSessionTest {
     @Test
     public void selectUser() {
         SqlSession sqlSession = sqlSessionFactory.openSession();
-//        sqlSession.selectOne("select * from user where 1=1");
-        List<User> list = sqlSession.selectList("selectById",1);
+        List<User> list = sqlSession.selectList("selectById");
         System.out.println("list="+list);
 
     }

@@ -44,7 +44,7 @@ public class DefaultSqlSessionFactory implements SqlSessionFactory {
 
     private SqlSession openSessionFromDataSource(ExecutorType execType, boolean autoCommit) {
         try {
-            final Executor executor = configuration.newExecutor(execType);
+            Executor executor = configuration.newExecutor(execType);
             return new DefaultSqlSession(configuration, executor, autoCommit);
         } catch (Exception e) {
             throw new RuntimeException("Error opening session.  Cause: " + e, e);

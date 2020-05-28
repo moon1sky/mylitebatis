@@ -2,6 +2,7 @@ package com.cn.mybatis.builder;
 
 import com.cn.mybatis.io.DocumentReader;
 import com.cn.mybatis.io.Resources;
+import com.cn.mybatis.plugin.Interceptor;
 import com.cn.mybatis.session.Configuration;
 
 import org.dom4j.Document;
@@ -12,6 +13,7 @@ import org.dom4j.io.SAXReader;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.Reader;
+import java.lang.reflect.InvocationTargetException;
 import java.util.List;
 import java.util.Properties;
 
@@ -30,10 +32,15 @@ public class XMLConfigBuilder {
     }
 
     public Configuration parse() {
-        Element rootElement = document.getRootElement();
-        parseEnvironmentsElement(rootElement.element("environments"));
-        parseMappersElement(rootElement.element("mappers"));
-        return configuration;
+        try {
+            Element rootElement = document.getRootElement();
+            parseEnvironmentsElement(rootElement.element("environments"));
+            pluginElement(rootElement.element("plugins"));
+            parseMappersElement(rootElement.element("mappers"));
+            return configuration;
+        }catch (Exception e){
+            throw new RuntimeException("Error parsing SQL Mapper Configuration. Cause: " + e, e);
+        }
     }
 
     private void parseMappersElement(Element mappers) {
@@ -45,7 +52,18 @@ public class XMLConfigBuilder {
             xmlMapperBuilder.parse();
         }
 
+
     }
+
+    private void pluginElement(Element plugins) throws Exception{
+        List<Element> mapperElements = plugins.elements();
+        for (Element element : mapperElements) {
+            String interceptor = element.attributeValue("interceptor");
+            Interceptor o = (Interceptor) resolveTypeClass(interceptor).getDeclaredConstructor().newInstance();
+            configuration.allPlugins(o);
+        }
+    }
+
 
     private void parseEnvironmentsElement(Element element) {
         String defaultEnvironment = element.attributeValue("default");
@@ -83,6 +101,16 @@ public class XMLConfigBuilder {
         }
         configuration.setDataSource(datasource);
 
+    }
+
+    private Class<?> resolveTypeClass(String name) {
+        Class<?> c;
+        try {
+            c = Class.forName(name);
+        } catch (ClassNotFoundException e) {
+            c = null;
+        }
+        return c;
     }
 
 }
