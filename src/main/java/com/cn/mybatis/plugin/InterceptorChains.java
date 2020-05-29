@@ -18,7 +18,7 @@ public class InterceptorChains {
 
     public Object pluginAll(Object target){
         for (Interceptor interceptor : list) {
-            return Plugin.wrap(interceptor,target);
+            return Plugin.wrap(target,interceptor);
         }
         return target;
     }
